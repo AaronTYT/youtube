@@ -1,0 +1,263 @@
+---
+title: "CITS4009 - Project 1"
+author: Aaron Tan (23070356)
+output: html_document
+date: "2023-08-04"
+runtime: shiny
+---
+
+### Introduction 👋
+The data set analyzed can be obtained from the Kaggle platform. It’s part of the “Global YouTube Statistics 2023" https://www.kaggle.com/datasets/nelgiriyewithana/global-youtube-statistics-2023
+
+A collection of YouTube giants, this dataset offers a perfect avenue to analyze and gain valuable insights from the luminaries of the platform. With comprehensive details on top creators' subscriber counts, video views, upload frequency, country of origin, earnings, and more, this treasure trove of information is a must-explore for aspiring content creators, data enthusiasts, and anyone intrigued by the ever-evolving online content landscape. Immerse yourself in the world of YouTube success and unlock a wealth of knowledge with this extraordinary dataset.
+
+### Data loading, overview and set up: 
+```{r}
+library(shiny)
+library(ggplot2)
+library(gridExtra)
+library(dplyr)
+library(ggthemes)
+library(numform)
+library(treemapify)
+library(timeDate)
+library(lubridate)
+library(dplyr)
+library(reshape2)
+library(ca)
+library(magrittr)
+library(tidyverse)
+library(data.table)
+library(shinyWidgets)
+library(leaflet)
+```
+
+
+Load the main data:
+
+```{r}
+# data_path <- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/Global YouTube Statistics.csv"
+data_path <- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/Global YouTube Statistics.csv"
+# df <- read.csv(data_path, sep=",", encoding = "UTF-8")
+df <- fread(data_path, sep=",", encoding = "UTF-8")
+```
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Exploration of Data Results:"),
+  
+  # Description panel using HTML elements
+  div(
+    h4("Summary of results:"),
+    p(HTML("There are <b>995 obs</b> with <b>28 variables.</b>")),
+    p("There are 4 integers, 7 characters and 17 numeric columns (variables)."),
+    p("Some of the data is not consistent like 0 video views, 'nan' and 'N/A'. I will data clean these values later (Transform stage) before using a new dataset to properly do the EDA analysis."),
+    
+    class = "description-panel",
+    p("Use the tabs below to view the structure (str), summary and head (first 6 datapoints per column) statistics."),
+    hr()  
+  ),
+  
+  mainPanel(
+    tabsetPanel(
+      tabPanel("str", verbatimTextOutput("str_output")),
+      tabPanel("summary", verbatimTextOutput("summary_output")),
+      tabPanel("head", tableOutput("head_output")),
+    )
+  )
+)
+
+server <- function(input, output) {
+  output$str_output <- renderPrint({
+    str(df)
+  })
+  
+  output$summary_output <- renderPrint({
+    summary(df)
+  })
+  
+  output$head_output <- renderTable({
+    head(df, 10)
+  })
+}
+
+shinyApp(ui, server)
+```
+
+### Data Cleaning/Transformation Stage 🧹
+```{r}
+# Stage 1: Columns underscore syntax should be consistent
+clean_df <- df %>%
+  rename_all(~ gsub(" ", "_", tolower(.)))
+
+# Stage 2: Replace all the zero, NA, and NaN values with their median
+selected_columns <- c("video_views", "uploads", "country_rank", "gross_tertiary_education_enrollment_(%)", "population", "subscribers_for_last_30_days", "unemployment_rate", "channel_type_rank", "video_views_for_the_last_30_days", "urban_population", "created_year")
+
+for (col_name in selected_columns) {
+  if (is.numeric(clean_df[[col_name]])) {
+    median_value <- median(clean_df[[col_name]][!is.na(clean_df[[col_name]]) & !is.nan(clean_df[[col_name]]) & clean_df[[col_name]] != 0])
+    
+    clean_df[[col_name]][is.na(clean_df[[col_name]]) | is.nan(clean_df[[col_name]]) | clean_df[[col_name]] == 0] <- median_value
+  }
+}
+# Figure it out how to change decimal to integer for uploads, channel_type_rank column
+
+# Select specific numeric columns
+
+scatter_df <- clean_df %>%
+  # select(subscribers, video_views, uploads, country, created_year)
+  select(subscribers, video_views, uploads, created_year)
+
+# Define a function to detect and mark outliers based on IQR
+remove_outliers <- function(column) {
+  q1 <- quantile(column, 0.25)
+  q3 <- quantile(column, 0.75)
+  iqr <- q3 - q1
+  lower_bound <- q1 - 1.5 * iqr
+  upper_bound <- q3 + 1.5 * iqr
+  column[column < lower_bound | column > upper_bound] <- NA
+  column
+}
+
+# Apply the remove_outliers function to the created_year column
+scatter_df2 <- scatter_df %>%
+  mutate(created_year = remove_outliers(created_year),
+         subscribers = remove_outliers(subscribers),
+         video_views = remove_outliers(video_views),
+         uploads = remove_outliers(uploads))
+
+map_df <- clean_df %>%
+  select("subscribers", "uploads", "country","latitude","longitude")
+
+# Print the summary of the cleaned created_year values
+summary(map_df)
+
+```
+
+
+### EDA Analysis Stage 🔍
+Now that the new dataset has been cleaned, we can properly perform EDA analysis to 
+interpret the following findings:
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Interactive Visualisations"),
+  div(
+     p("Select the following options")
+  ),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("plot_type", "Select plot type:", choices = c("Scatter", "Map",  "geom_histogram", "geom_bar", "geom_boxplot", "geom_line")),
+      conditionalPanel(
+        condition = "input.plot_type == 'geom_histogram' || input.plot_type == 'Scatter' ",
+        
+        # Later figure out how to specifically outline numerically columns
+        selectInput("x_attr", "Select x-axis attribute:", names(scatter_df2)),
+        selectInput("y_attr", "Select y-axis attribute:", names(scatter_df2))
+      ),
+      conditionalPanel(
+        condition = "input.plot_type == 'Map'",
+        selectInput("d_attr", "Select size: ", names(scatter_df2))
+      )
+    ),
+    
+   mainPanel(
+      conditionalPanel(
+        condition = "input.plot_type != 'Map'",
+        plotOutput("plot", height = "400px", width = "600px")
+      ),
+      conditionalPanel(
+        condition = "input.plot_type == 'Map'",
+        leafletOutput("map", height = "400px", width = "600px")
+      )
+    )
+  )
+)
+
+# Define the server
+server <- function(input, output) {
+  output$plot <- renderPlot({
+    if (input$plot_type == "Scatter") {
+      x_attr <- input$x_attr
+      y_attr <- input$y_attr
+      
+      print(paste("datatype: ", class(x_attr)))
+      
+      ggplot(scatter_df2, aes_string(x = x_attr, y = y_attr)) +
+        geom_point() +
+        geom_smooth(span = 0.1) +
+        labs(title = paste(x_attr, " amount by ", y_attr))
+      
+    } else if (input$plot_type == "Map") {
+      # d_attr <- as.numeric(input$d_attr)
+      d_attr <- input$d_attr
+      
+      # summary(d_attr)
+      # ("country","latitude","longitude", "uploads")
+      
+      # Identify numeric columns
+      print(paste("d_attr: ", d_attr))
+      # print(paste("map_df$d_attr: ", head(map_df[[d_attr]]), 10))
+      
+      print(paste("datatype: ", class(d_attr)))
+      print(paste("datatype: ", class(map_df[[d_attr]])))
+      
+      map_df_numeric <- as.numeric(map_df[[d_attr]])
+      print(paste("map_df_numeric ", class(map_df_numeric)))
+      
+      # print(paste("map_df$d_attr: ", map_df$d_attr))
+      
+      pal <- colorNumeric(
+        palette = "Blues",
+        domain = map_df_numeric
+      )
+      
+      qpal <- colorQuantile("Blues", map_df_numeric, n = 7)
+    
+      leaflet() %>%
+        addTiles() %>%
+        addPolygons(
+          data = d_attr,
+          stroke = FALSE,
+          smoothFactor = 0.2,
+          fillOpacity = 1,
+          fillColor = ~pal(map_df_numeric),
+          popup = ~paste("<strong>Country:</strong><br>",
+                         "<strong>Data:</strong>", map_df_numeric)
+        )
+    }
+  })
+}
+
+# Run the Shiny app
+shinyApp(ui, server)
+```
+
+```{r}
+summary(map_df$uploads)
+summary(map_df$latitude)
+summary(map_df$longitude)
+```
+
+### Graph 1 - Business Query: Trend by Time
+As you can see....
+
+```{r}
+
+```
+
+
+### Graph 2 - Business Query: Trend by Time
+As you can see....
+
+### Graph 3 Business Query: Trend by Time
+As you can see....
+
+### Graph 4 - Business Query: Trend by Time
+As you can see....
+
+### Conclusion/Summary 📋
+In Conclusion, blah blah blah here
+
+
