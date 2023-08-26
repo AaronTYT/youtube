@@ -7,7 +7,7 @@ runtime: shiny
 ---
 
 ### Introduction 👋
-The data set analyzed can be obtained from the Kaggle platform. It’s part of the “Global YouTube Statistics 2023" https://www.kaggle.com/datasets/nelgiriyewithana/global-youtube-statistics-2023
+The data set analyzed can be obtained from the Kaggle platform. It’s part of the “Global YouTube Statistics 2023"
 
 A collection of YouTube giants, this dataset offers a perfect avenue to analyze and gain valuable insights from the luminaries of the platform. With comprehensive details on top creators' subscriber counts, video views, upload frequency, country of origin, earnings, and more, this treasure trove of information is a must-explore for aspiring content creators, data enthusiasts, and anyone intrigued by the ever-evolving online content landscape. Immerse yourself in the world of YouTube success and unlock a wealth of knowledge with this extraordinary dataset.
 
@@ -16,14 +16,13 @@ A collection of YouTube giants, this dataset offers a perfect avenue to analyze 
 library(shiny)
 library(ggplot2)
 library(gridExtra)
+# library(ggthemes)
+# library(numform)
+#library(treemapify)
+# library(timeDate)
+# library(lubridate)
 library(dplyr)
-library(ggthemes)
-library(numform)
-library(treemapify)
-library(timeDate)
-library(lubridate)
-library(dplyr)
-library(reshape2)
+# library(reshape2)
 library(ca)
 library(magrittr)
 library(tidyverse)
@@ -37,7 +36,7 @@ Load the main data:
 
 ```{r}
 # data_path <- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/Global YouTube Statistics.csv"
-data_path <- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/Global YouTube Statistics.csv"
+data_path <- "C:/Users/tanaaro/Desktop/youtube/Global YouTube Statistics.csv"
 # df <- read.csv(data_path, sep=",", encoding = "UTF-8")
 df <- fread(data_path, sep=",", encoding = "UTF-8")
 ```
@@ -51,7 +50,7 @@ ui <- fluidPage(
     h4("Summary of results:"),
     p(HTML("There are <b>995 obs</b> with <b>28 variables.</b>")),
     p("There are 4 integers, 7 characters and 17 numeric columns (variables)."),
-    p("Some of the data is not consistent like 0 video views, 'nan' and 'N/A'. I will data clean these values later (Transform stage) before using a new dataset to properly do the EDA analysis."),
+    p("Some of the data is not consistent like 0 video views, 'nan' and 'N/A'. I will data clean these values (Transform stage) before using a new dataset to properly do the EDA analysis."),
     
     class = "description-panel",
     p("Use the tabs below to view the structure (str), summary and head (first 6 datapoints per column) statistics."),
@@ -91,7 +90,7 @@ clean_df <- df %>%
   rename_all(~ gsub(" ", "_", tolower(.)))
 
 # Stage 2: Replace all the zero, NA, and NaN values with their median
-selected_columns <- c("video_views", "uploads", "country_rank", "gross_tertiary_education_enrollment_(%)", "population", "subscribers_for_last_30_days", "unemployment_rate", "channel_type_rank", "video_views_for_the_last_30_days", "urban_population", "created_year")
+selected_columns <- c("video_views", "uploads", "country_rank", "gross_tertiary_education_enrollment_(%)", "population", "subscribers_for_last_30_days", "unemployment_rate", "channel_type_rank", "video_views_for_the_last_30_days", "urban_population", "created_year", "country")
 
 for (col_name in selected_columns) {
   if (is.numeric(clean_df[[col_name]])) {
@@ -102,13 +101,12 @@ for (col_name in selected_columns) {
 }
 # Figure it out how to change decimal to integer for uploads, channel_type_rank column
 
-# Select specific numeric columns
-
+# Stage 3: Specifically get columns required for scatterplot
 scatter_df <- clean_df %>%
   # select(subscribers, video_views, uploads, country, created_year)
   select(subscribers, video_views, uploads, created_year)
 
-# Define a function to detect and mark outliers based on IQR
+# Stage 4: Remove outliers by using this function forumla:
 remove_outliers <- function(column) {
   q1 <- quantile(column, 0.25)
   q3 <- quantile(column, 0.75)
@@ -119,42 +117,45 @@ remove_outliers <- function(column) {
   column
 }
 
-# Apply the remove_outliers function to the created_year column
+# New df after removing outliers
 scatter_df2 <- scatter_df %>%
   mutate(created_year = remove_outliers(created_year),
          subscribers = remove_outliers(subscribers),
          video_views = remove_outliers(video_views),
          uploads = remove_outliers(uploads))
 
+# Stage 5: Setup any new dfs
+bar_df <- clean_df %>%
+  select("subscribers", "uploads", "country")
+
 map_df <- clean_df %>%
   select("subscribers", "uploads", "country","latitude","longitude")
-
-# Print the summary of the cleaned created_year values
-summary(map_df)
-
 ```
 
 
 ### EDA Analysis Stage 🔍
-Now that the new dataset has been cleaned, we can properly perform EDA analysis to 
-interpret the following findings:
+Now that the new dataset has been cleaned and transformed (ETL stage complete), we can properly perform EDA analysis to interpret the following findings:
 
 ```{r}
 ui <- fluidPage(
-  titlePanel("Interactive Visualisations"),
+  titlePanel("Interactive Visualisations 🌠"),
   div(
-     p("Select the following options")
+     p("Select the following options: ")
   ),
   
   sidebarLayout(
     sidebarPanel(
-      selectInput("plot_type", "Select plot type:", choices = c("Scatter", "Map",  "geom_histogram", "geom_bar", "geom_boxplot", "geom_line")),
+      selectInput("plot_type", "Select plot type:", choices = c("Scatter", "Map", "Bar Chart", "geom_boxplot", "geom_line")),
       conditionalPanel(
-        condition = "input.plot_type == 'geom_histogram' || input.plot_type == 'Scatter' ",
+        condition = "input.plot_type == 'Scatter'",
         
         # Later figure out how to specifically outline numerically columns
         selectInput("x_attr", "Select x-axis attribute:", names(scatter_df2)),
         selectInput("y_attr", "Select y-axis attribute:", names(scatter_df2))
+      ),
+      conditionalPanel(
+        condition = "input.plot_type == 'Bar Chart'",
+        selectInput("x_attr", "Select x-axis attribute:", choices = c("subscribers", "uploads"))
       ),
       conditionalPanel(
         condition = "input.plot_type == 'Map'",
@@ -182,13 +183,30 @@ server <- function(input, output) {
       x_attr <- input$x_attr
       y_attr <- input$y_attr
       
-      print(paste("datatype: ", class(x_attr)))
+      # print(paste("datatype: ", class(x_attr)))
       
       ggplot(scatter_df2, aes_string(x = x_attr, y = y_attr)) +
         geom_point() +
         geom_smooth(span = 0.1) +
         labs(title = paste(x_attr, " amount by ", y_attr))
+    
+    # Work on geom_bar
+    }else if(input$plot_type == "Bar Chart"){
+      x_attr <- input$x_attr
+      values <- clean_df[[x_attr]]
+      y_attr <- bar_df$country
       
+
+      # y-axis for countries
+      # x-axis for numeric data
+      ggplot(bar_df, mapping = aes(x = values, y = y_attr)) +
+        geom_bar(stat="identity", fill="gray") +
+        geom_text(mapping=aes(label = x_attr), position = position_stack(vjust = 0.5), size=4) +
+        ggtitle("Title here") +
+        coord_flip() +
+        labs(title = paste(x_attr, " amount by ", y_attr))
+
+    # # Work on map last
     } else if (input$plot_type == "Map") {
       # d_attr <- as.numeric(input$d_attr)
       d_attr <- input$d_attr
@@ -234,27 +252,46 @@ server <- function(input, output) {
 shinyApp(ui, server)
 ```
 
-```{r}
-summary(map_df$uploads)
-summary(map_df$latitude)
-summary(map_df$longitude)
+
+### Business Queries:
+#### 1. 2010 - 2015 between subscribers and video_views
+The correlation for both subscribers and views showcase that the number of youtubers are primarily under 25% during the era in 2010-2015 making
+
+
+```{r, warning=FALSE}
+# Figure out how to change the ggplot size later
+p1 <- ggplot(data = scatter_df2, mapping = aes(x = scatter_df2$subscribers, y = scatter_df2$created_year, color = (scatter_df2$created_year >= 2010 & scatter_df2$created_year <= 2015))) +
+  geom_point() +
+  scale_color_manual(values = c("FALSE" = "gray", "TRUE" = "red"),
+  name = "Legend:",
+  labels = c("Before 2010", "2010-2015")) +
+  geom_smooth(span=0.1) +
+  labs(x = "Subscribers Scatterplot", y = "Year") +
+  ggtitle("Subscribers")
+
+p2 <- ggplot(data = scatter_df2, mapping = aes(x = scatter_df2$video_views, y = scatter_df2$created_year, color = (scatter_df2$created_year >= 2010 & scatter_df2$created_year <= 2015))) +
+  geom_point() +
+  scale_color_manual(values = c("FALSE" = "gray", "TRUE" = "red"),
+  name = "Legend:",
+  labels = c("Before 2010", "2010-2015")) +
+  geom_smooth(span=0.1) +
+  labs(x = "Views", y = "Year") +
+  ggtitle("Video_views")
+
+grid.arrange(p1, p2, ncol=1)
+
 ```
 
-### Graph 1 - Business Query: Trend by Time
+#### 2. AI
 As you can see....
 
-```{r}
-
-```
-
-
-### Graph 2 - Business Query: Trend by Time
+#### 3. Softwware Engineering
 As you can see....
 
-### Graph 3 Business Query: Trend by Time
+#### 4.Cyber Security
 As you can see....
 
-### Graph 4 - Business Query: Trend by Time
+#### 5. IT
 As you can see....
 
 ### Conclusion/Summary 📋
