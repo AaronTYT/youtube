@@ -7,7 +7,7 @@ runtime: shiny
 ---
 
 ### Introduction 👋
-The data set analyzed can be obtained from the Kaggle platform. It’s part of the “Global YouTube Statistics 2023"
+The data set analyzed can be obtained from the Kaggle platform. It’s part of the “Global YouTube Statistics 2023" https://www.kaggle.com/datasets/nelgiriyewithana/global-youtube-statistics-2023
 
 A collection of YouTube giants, this dataset offers a perfect avenue to analyze and gain valuable insights from the luminaries of the platform. With comprehensive details on top creators' subscriber counts, video views, upload frequency, country of origin, earnings, and more, this treasure trove of information is a must-explore for aspiring content creators, data enthusiasts, and anyone intrigued by the ever-evolving online content landscape. Immerse yourself in the world of YouTube success and unlock a wealth of knowledge with this extraordinary dataset.
 
@@ -16,13 +16,7 @@ A collection of YouTube giants, this dataset offers a perfect avenue to analyze 
 library(shiny)
 library(ggplot2)
 library(gridExtra)
-# library(ggthemes)
-# library(numform)
-#library(treemapify)
-# library(timeDate)
-# library(lubridate)
 library(dplyr)
-# library(reshape2)
 library(ca)
 library(magrittr)
 library(tidyverse)
@@ -32,12 +26,15 @@ library(leaflet)
 ```
 
 
-Load the main data:
+#### Load the main data and display summary, str and head:
 
 ```{r}
-# data_path <- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/Global YouTube Statistics.csv"
-data_path <- "C:/Users/tanaaro/Desktop/youtube/Global YouTube Statistics.csv"
+data_path <- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/Global YouTube Statistics.csv"
+# data_path <- "C:/Users/tanaaro/Desktop/youtube/Global YouTube Statistics.csv"
+
+
 # df <- read.csv(data_path, sep=",", encoding = "UTF-8")
+# df <- (data_path, sep=",", encoding = "UTF-8")
 df <- fread(data_path, sep=",", encoding = "UTF-8")
 ```
 
@@ -84,12 +81,17 @@ shinyApp(ui, server)
 ```
 
 ### Data Cleaning/Transformation Stage 🧹
+#### Stage 1: Columns underscore syntax should be consistent
+
 ```{r}
-# Stage 1: Columns underscore syntax should be consistent
 clean_df <- df %>%
   rename_all(~ gsub(" ", "_", tolower(.)))
+```
 
-# Stage 2: Replace all the zero, NA, and NaN values with their median
+<br>
+
+#### Stage 2: Replace all the zero, NA, and NaN values with their median
+```{r}
 selected_columns <- c("video_views", "uploads", "country_rank", "gross_tertiary_education_enrollment_(%)", "population", "subscribers_for_last_30_days", "unemployment_rate", "channel_type_rank", "video_views_for_the_last_30_days", "urban_population", "created_year", "country")
 
 for (col_name in selected_columns) {
@@ -100,8 +102,12 @@ for (col_name in selected_columns) {
   }
 }
 # Figure it out how to change decimal to integer for uploads, channel_type_rank column
+```
 
-# Stage 3: Specifically get columns required for scatterplot
+<br>
+
+#### Stage 3: Specifically get columns required for scatterplot
+```{r}
 scatter_df <- clean_df %>%
   # select(subscribers, video_views, uploads, country, created_year)
   select(subscribers, video_views, uploads, created_year)
@@ -123,13 +129,17 @@ scatter_df2 <- scatter_df %>%
          subscribers = remove_outliers(subscribers),
          video_views = remove_outliers(video_views),
          uploads = remove_outliers(uploads))
+```
 
-# Stage 5: Setup any new dfs
+<br>
+
+#### Stage 4: Setup any new dfs
+```{r}
 bar_df <- clean_df %>%
   select("subscribers", "uploads", "country")
 
 map_df <- clean_df %>%
-  select("subscribers", "uploads", "country","latitude","longitude")
+  select("subscribers", "video_views", "uploads", "country","latitude","longitude")
 ```
 
 
@@ -138,7 +148,7 @@ Now that the new dataset has been cleaned and transformed (ETL stage complete), 
 
 ```{r}
 ui <- fluidPage(
-  titlePanel("Interactive Visualisations 🌠"),
+  titlePanel("Interactive Visualisations"),
   div(
      p("Select the following options: ")
   ),
@@ -178,6 +188,36 @@ ui <- fluidPage(
 
 # Define the server
 server <- function(input, output) {
+  
+  output$map <- renderLeaflet({
+    d_attr <- input$d_attr
+    lat <- map_df$latitude
+    long <- map_df$longitude
+    
+    print(head(map_df[[d_attr]],10))
+    
+    if (d_attr == "subscribers") {
+      radius_multiplier <- 1 / 8000000
+      radius_color <- "darkred"
+    } else if (d_attr == "video_views") {
+      radius_multiplier <- 1 / 6000000000
+      radius_color <- "darkblue"
+    }
+
+    leaflet() %>%
+      addTiles() %>%
+      setView(lng = mean(long, na.rm = TRUE), lat = mean(lat, na.rm = TRUE), zoom = 2) %>%
+      addCircleMarkers(
+        data = map_df,
+        lng = long,
+        lat = lat,
+        radius = map_df[[d_attr]] * radius_multiplier,
+        color = radius_color,
+        fillOpacity = 0.7,
+        popup = paste("Country: ", map_df$country, "<br>", d_attr, map_df[[d_attr]])
+      )
+  })
+  
   output$plot <- renderPlot({
     if (input$plot_type == "Scatter") {
       x_attr <- input$x_attr
@@ -206,50 +246,13 @@ server <- function(input, output) {
         coord_flip() +
         labs(title = paste(x_attr, " amount by ", y_attr))
 
-    # # Work on map last
-    } else if (input$plot_type == "Map") {
-      # d_attr <- as.numeric(input$d_attr)
-      d_attr <- input$d_attr
-      
-      # summary(d_attr)
-      # ("country","latitude","longitude", "uploads")
-      
-      # Identify numeric columns
-      print(paste("d_attr: ", d_attr))
-      # print(paste("map_df$d_attr: ", head(map_df[[d_attr]]), 10))
-      
-      print(paste("datatype: ", class(d_attr)))
-      print(paste("datatype: ", class(map_df[[d_attr]])))
-      
-      map_df_numeric <- as.numeric(map_df[[d_attr]])
-      print(paste("map_df_numeric ", class(map_df_numeric)))
-      
-      # print(paste("map_df$d_attr: ", map_df$d_attr))
-      
-      pal <- colorNumeric(
-        palette = "Blues",
-        domain = map_df_numeric
-      )
-      
-      qpal <- colorQuantile("Blues", map_df_numeric, n = 7)
-    
-      leaflet() %>%
-        addTiles() %>%
-        addPolygons(
-          data = d_attr,
-          stroke = FALSE,
-          smoothFactor = 0.2,
-          fillOpacity = 1,
-          fillColor = ~pal(map_df_numeric),
-          popup = ~paste("<strong>Country:</strong><br>",
-                         "<strong>Data:</strong>", map_df_numeric)
-        )
     }
   })
 }
 
 # Run the Shiny app
 shinyApp(ui, server)
+
 ```
 
 

@@ -1,23 +1,47 @@
-# Example dataset
-lowest_monthly_earnings <- c(0, 0, 130000, 140000, 150000)
+library(shiny)
+library(leaflet)
+library(sf)
 
-# Calculate median without zeros
-non_zero_values <- lowest_monthly_earnings[lowest_monthly_earnings > 0]
-median_non_zeros <- median(non_zero_values)
+# Load the data
+countries <- sf::st_read("https://rstudio.github.io/leaflet/json/countries.geojson")
 
-# Identify and replace outliers
-outliers <- lowest_monthly_earnings[lowest_monthly_earnings <= 0]
-lowest_monthly_earnings[outliers] <- median_non_zeros
+# Define UI
+ui <- fluidPage(
+  titlePanel("World Map with GDP Visualization"),
+  leafletOutput("map")
+)
 
-# Print the updated vector
-print("Updated lowest_monthly_earnings:")
-print(lowest_monthly_earnings)
-summary(lowest_monthly_earnings)
+# Define server logic
+server <- function(input, output) {
+  output$map <- renderLeaflet({
+    print(class(countries))
+    
+    # Datatype for countries$gdp_md_est is numeric
+    print(paste("datatype: ", class(countries$gdp_md_est)))
+    print(head(countries$gdp_md_est), 3)
+    pal <- colorNumeric(
+      palette = "Blues",
+      # The datatype must be numeric to perform this action.
+      domain = countries$gdp_md_est
+    )
+    
+    qpal <- colorQuantile("Blues", countries$gdp_md_est, n = 7)
+    
+    leaflet() %>%
+      addTiles() %>%
+      addPolygons(
+        data = countries,
+        stroke = FALSE,
+        smoothFactor = 0.2,
+        fillOpacity = 1,
+        fillColor = ~pal(gdp_md_est),
+        popup = ~paste("<strong>Country:</strong><br>",
+                       "<strong>GDP:</strong>", gdp_md_est)
+      )
+  })
+}
 
 
-stat <- boxplot.stats(lowest_monthly_earnings)
-min(stat$out)
 
-
-
-
+# Create and run Shiny app
+shinyApp(ui, server)
