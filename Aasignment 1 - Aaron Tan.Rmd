@@ -35,7 +35,7 @@ library(leaflet)
 #### Load the main data and display summary, str and head:
 
 ```{r}
-data_path <- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/Global YouTube Statistics.csv"
+data_path <- "C:/Users/tanaaro/Desktop/youtube/Global YouTube Statistics.csv"
 # data_path <- "C:/Users/tanaaro/Desktop/youtube/Global YouTube Statistics.csv"
 
 
@@ -284,7 +284,7 @@ server <- function(input, output) {
                 -2.5, hjust = -0.8, color = "black", size = 3) + 
       labs(title = "Top 5 Countries by <x-axis title here>",
            x = "<x-axis here>",
-           y = "Country") +
+           y = "Country") +f
       theme_minimal() +
       scale_x_continuous(position = "top")  # Move x-axis to top
     
@@ -325,7 +325,7 @@ shinyApp(ui, server)
 
 ### Business Queries:
 #### 1. Correlation between Number of Subscribers and the Number of Video Views
-The correlation for both subscribers and views showcase that the number of youtubers are primarily under 25% during the era in 2010-2015 making
+The correlation for both subscribers and views showcase that the number of YouTubers are primarily under 25% during the era in 2010-2015 and the correlation of that the higher the views and the subscribers, it typically rare for YouTubers to acquire high amount of views and subscribers. 
 
 
 ```{r, warning=FALSE}
@@ -353,10 +353,32 @@ grid.arrange(p1, p2, ncol=1)
 ```
 
 #### 2. Top 10 YouTube Channels by No. Subscribers (2023) (Bar Chart)
-As you can see....
+You can see that T-Series has the highest amount of subscribers.
+```{r}
+top_data <- head(bar_df[order(bar_df$subscribers, decreasing = TRUE), ], 10)
+ggplot(top_data, aes_string(x = "subscribers", y = "youtuber")) +
+        geom_bar(stat = "identity", fill = "steelblue") +
+        labs(title = "Top 10 YouTube Channels by No. Youtuber", x = "Subscribers", y = "YouTuber")
+```
 
 #### 3. Top 10 YouTube Channels Categories (2023) (Bar Chart)
-As you can see....
+
+```{r}
+# How to count the number of channel_type?
+top_data <- head(bar_df[order(bar_df$channel_type, decreasing = TRUE), ], 10)
+
+
+aggregated_data <- top_data %>%
+  print() %>%
+  group_by(channel_type) %>%
+  
+  # Why it applies all the mean to all countries instead of it each country?
+  summarize(total_value = sum(values, na.rm = T))
+
+ggplot(top_data, aes_string(x = "channel_type", y = values)) +
+        geom_bar(stat = "identity", fill = "steelblue") +
+        labs(title = "Top 10 YouTube Channels by No. Channel Type", x = "Channel Type", y = "YouTuber")
+```
 
 #### 4. Which Countries have the Highest Number of YouTubers? (Pie Chart)
 As you can see....
