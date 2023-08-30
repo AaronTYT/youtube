@@ -34,7 +34,7 @@ library(leaflet)
 #### Load the main data and display summary, str and head:
 ```{r}
 #data_path <- "C:/Users/tanaaro/Desktop/youtube/Global YouTube Statistics.csv"
-data_path <- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/Global YouTube Statistics.csv"
+data_path <- "C:/Users/tanaaro/Desktop/youtube/Global YouTube Statistics.csv"
 df <- fread(data_path, sep=",", encoding = "UTF-8")
 ```
 
@@ -256,7 +256,7 @@ server <- function(input, output) {
       geom_text(aes(label = total_value), vjust = 3
                 -2.5, hjust = -0.8, color = "black", size = 3) + 
       labs(title = paste("Top 5 Countries by", country),
-           x = country,
+           x = "Subscribers",
            y = "Country") +
       theme_minimal() +
       scale_x_continuous(position = "top")  # Move x-axis to top
@@ -309,6 +309,7 @@ The correlation for both subscribers and highest_yearly_earnings showcase that v
 lower compared to those who have higher subscribers but that does not necessary mean it will generally have higher earnings.
 For instance, some subscribers have low amount of subscribers but yet they achieved great earning results and some do have higher subscribers
 but the earnings are low. Not much youtubers who can achieve a high amount of subscribers is necessary to achieve high earnings based on subscribers alone, it can affect the amount of earnings such as marketing campaigns to buy more products etc.
+
 ```{r, warning = FALSE }
 # Figure out how to change the ggplot size later
 ggplot(data = scatter_df2, mapping = aes(x = scatter_df2$subscribers, y = scatter_df2$highest_yearly_earnings)) +
@@ -316,6 +317,10 @@ ggplot(data = scatter_df2, mapping = aes(x = scatter_df2$subscribers, y = scatte
   geom_smooth(method = "lm", formula = y ~ x) +
   labs(x = "No. of Subscribers", y = "$ per year") +
   ggtitle("Subscribers Earnings per Year")
+
+
+summary(scatter_df2$subscribers)
+summary(scatter_df2$highest_yearly_earnings)
 ```
 
 #### 2. Top 10 YouTube Channels by No. Subscribers
@@ -342,8 +347,40 @@ ggplot(top_data, aes_string(x = "highest_yearly_earnings", y = "clean_youtuber")
         labs(title = "Top 10 YouTubers by their max earnings per Year ($)", x = "Max Earnings per Year ($)", y = "YouTuber")
 ```
 
+#### 4. Top 10 Countries shows subscribers and max earnings comparsion
+As you can see, every youtuber based on their country is added up their earnings and subscribers to represent which country contains the highest earnings and subscribers. We can definitely correlate that United States of America tends to have the highest earnings and subscribers, followed by India. Since majority of the world population's main language is English, it makes sense to see that majority of the population will be marketed towards English speakers.
+```{r}
+top10_country_max <- bar_df %>%
+  group_by(country) %>%
+  summarise(max_earnings = round(sum(highest_yearly_earnings)/10000000)) %>%
+  arrange(desc(max_earnings)) %>%
+  head(10)
+
+top10_country_sub <- bar_df %>%
+  group_by(country) %>%
+  summarise(subscribers = round(sum(subscribers)/10000000)) %>%
+  arrange(desc(subscribers)) %>%
+  head(10)
+
+p1 <- ggplot(top10_country_max, aes(x = max_earnings, y = country)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_text(aes_string(label = "max_earnings"), vjust = 0.5, hjust = 1.1,   color = "white", size = 3.5, fontface = "bold") +
+  labs(title = "Top 10 Countries by Maximum Earnings",
+       x = "Earnings (10M)",
+       y = "Country")
+
+p2 <- ggplot(top10_country_sub, aes(x = subscribers, y = country)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_text(aes_string(label = "subscribers"), vjust = 0.5, hjust = 1.1,   color = "white", size = 3.5, fontface = "bold") +
+  labs(title = "Top 10 Countries by Subscribers",
+       x = "Subscribers (10M)",
+       y = "Country")
+
+grid.arrange(p1, p2)
+```
+
 ### Conclusion/Summary 📋
-In Conclusion, blah blah blah here
+In Conclusion, 
 
 #### Improvements in the near future
 Bar Chart:
@@ -352,7 +389,7 @@ Bar Chart:
 * Ability to add a slider option not just fixed to only 10 YouTubers, it can showcase based on their selection for only the max. E.g I want to show 5 YouTubers.
 
 
-Added more variety of plot-types and added additional data transform for better insights to answer impact queries.
+Add more variety of plot-types and enable functionality in shiny-app interaction and added additional data analysis for better insights to answer impactful queries.
 
 
 
