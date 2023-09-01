@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<meta charset="utf-8">
+<meta name="generator" content="pandoc">
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE">
+
+
+<meta name="author" content="Aaron Tan (23070356)">
+
+<meta name="date" content="2023-09-01">
+
+<title>CITS4009 - Project 1</title>
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+<script type="text/javascript" src="CITS4009%20-%20Project%201_files/MathJax.js"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 2px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 2px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: 1em}
+.MathJax_MenuRadioCheck.RTL {right: 1em; left: auto}
+.MathJax_MenuLabel {padding: 2px 2em 4px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #CCCCCC; margin: 4px 1px 0px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: Highlight; color: HighlightText}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1px; bottom: 2px; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style></head>
+
+<body><div id="MathJax_Message" style="display: none;"></div>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div id="section-header">
+
+
+
+<h1 class="title toc-ignore">CITS4009 - Project 1</h1>
+<h4 class="author">Aaron Tan (23070356)</h4>
+<h4 class="date">2023-09-01</h4>
+
+</div>
+
+
+<div id="section-introduction" class="section level3">
+<h3>Introduction 👋</h3>
+<p>The data set analyzed can be obtained from the Kaggle platform. It’s
+part of the “Global YouTube Statistics 2023” <a href="https://www.kaggle.com/datasets/nelgiriyewithana/global-youtube-statistics-2023" class="uri">https://www.kaggle.com/datasets/nelgiriyewithana/global-youtube-statistics-2023</a></p>
+<p>A collection of YouTube giants, this dataset offers a perfect avenue
+to analyze and gain valuable insights from the luminaries of the
+platform. With comprehensive details on top creators’ subscriber counts,
+video views, upload frequency, country of origin, earnings, and more,
+this treasure trove of information is a must-explore for aspiring
+content creators, data enthusiasts, and anyone intrigued by the
+ever-evolving online content landscape. Immerse yourself in the world of
+YouTube success and unlock a wealth of knowledge with this extraordinary
+dataset.</p>
+<p>Video link: <a href="https://youtu.be/PytUn6ANdnk" class="uri">https://youtu.be/PytUn6ANdnk</a></p>
+<p><br> Table of each stage:</p>
+<ul>
+<li><a href="#section-basic-stats">Basic Statistics</a></li>
+<li><a href="#section-data-clean">Data Cleaning/Transformation
+Stage</a></li>
+<li><a href="#section-visual-insights">Visualisations and Insights
+Stage</a></li>
+<li><a href="#section-bqueries">Business Queries</a></li>
+<li><a href="#section-conclusion">Conclusion</a></li>
+</ul>
+</div>
+<div id="section-data-loading-overview-and-set-up" class="section level3">
+<h3>Data loading, overview and set up:</h3>
+<pre class="r"><code>library(shiny)
+library(ggplot2)
+library(gridExtra)
+library(dplyr)
+library(ca)
+library(magrittr)
+library(tidyverse)
+library(data.table)
+library(shinyWidgets)
+library(leaflet)</code></pre>
+<div id="section-basic-stats" class="section level4">
+<h4>Basic Statistics:</h4>
+<p>In this section, we demonstrate the iterative nature of EDA by
+revisiting and refining our analysis at different stages.</p>
+<p>Initial exploration: <br> This will perform a basic exploration of
+the data to get a sense of its structure. We show the structure,
+summary, and head of the data to understand its basic
+characteristics.</p>
+<pre class="r"><code># Define a variable for the base directory
+base_dir &lt;- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/"
+
+# Define a variable for the file name
+file_name &lt;- "Global YouTube Statistics.csv"
+
+# Combine the base directory and file name to create the full data path
+data_path &lt;- file.path(base_dir, file_name)
+df &lt;- fread(data_path, sep=",", encoding = "UTF-8")</code></pre>
+<pre class="r"><code>ui &lt;- fluidPage(
+  titlePanel("Exploration of Data Results:"),
+  
+  div(
+    h4("Summary of results:"),
+    p(HTML("There are &lt;b&gt;995 obs&lt;/b&gt; with &lt;b&gt;28 variables.&lt;/b&gt;")),
+    p("There are 4 integers, 7 characters and 17 numeric columns (variables)."),
+    p("Some of the data is not consistent like 0 video views, 'nan' and 'N/A'. I will data clean these values (Transform stage) before using a new dataset to properly do the EDA analysis."),
+    
+    class = "description-panel",
+    p("Use the tabs below to view the structure (str), summary and head (first 10 datapoints per column) statistics."),
+    hr()  
+  ),
+  
+  mainPanel(
+    tabsetPanel(
+      tabPanel("str", verbatimTextOutput("str_output")),
+      tabPanel("summary", verbatimTextOutput("summary_output")),
+      tabPanel("head", tableOutput("head_output")),
+    )
+  )
+)
+
+# Display the 3 structures of data to understand its basic charactertistics
+server &lt;- function(input, output) {
+  output$str_output &lt;- renderPrint({
+    str(df)
+  })
+  
+  output$summary_output &lt;- renderPrint({
+    summary(df)
+  })
+  
+  output$head_output &lt;- renderTable({
+    head(df, 10)
+  })
+}
+
+shinyApp(ui, server)</code></pre>
+<iframe data-deferred-src="appa798e062b26a6f5b36ec4376306bfddf/?w=&amp;__subapp__=1" width="100%" height="400" class="shiny-frame shiny-frame-deferred"></iframe>
+</div>
+</div>
+<div id="section-data-clean" class="section level3">
+<h3>Data Cleaning/Transformation Stage 🧹</h3>
+<p>An important part of the ETL (Transform) Stage process before we do
+any analysis since this dataset does not contain perfect structured data
+required for the analysis. This Stage is modularised into 5
+processes:</p>
+<ul>
+<li>Columns underscore syntax should be consistent</li>
+<li>Replace all the zero, NA, and NaN values with their median</li>
+<li>Specifically get columns required</li>
+<li>Remove outliers</li>
+<li>Setup any new dfs</li>
+</ul>
+<div id="section-process-1-columns-underscore-syntax-should-be-consistent" class="section level4">
+<h4>Process 1: Columns underscore syntax should be consistent</h4>
+<p>Replace all the columns headings that are spaced to have replaced
+with _ and to make the column names all lowercases.</p>
+<pre class="r"><code>clean_df &lt;- df %&gt;%
+  rename_all(~ gsub(" ", "_", tolower(.)))</code></pre>
+<p><br></p>
+</div>
+<div id="section-process-2-replace-all-the-zero-na-and-nan-values-with-their-median" class="section level4">
+<h4>Process 2: Replace all the zero, NA, and NaN values with their
+median</h4>
+<p>Any missing values that are identified these 3 values are replaced
+each row based on its own column to its median.</p>
+<pre class="r"><code>selected_columns &lt;- c("video_views", "uploads", "country_rank", "gross_tertiary_education_enrollment_(%)", "population", "subscribers_for_last_30_days", "unemployment_rate", "channel_type_rank", "video_views_for_the_last_30_days", "urban_population", "created_year", "country")
+
+# Calculate the median value for selected numeric columns and replace missing/zero values
+for (col_name in selected_columns) {
+  if (is.numeric(clean_df[[col_name]])) {
+    clean_df[[col_name]][is.na(clean_df[[col_name]]) | is.nan(clean_df[[col_name]]) | clean_df[[col_name]] == 0] &lt;- median(clean_df[[col_name]], na.rm = TRUE)
+  }
+}</code></pre>
+<p><br></p>
+</div>
+<div id="section-process-3-specifically-get-columns-required-for-a-dataframe" class="section level4">
+<h4>Process 3: Specifically get columns required for a dataframe</h4>
+<p>Get the appropriate columns from clean_df</p>
+<pre class="r"><code>select_df &lt;- clean_df %&gt;%
+  select(subscribers, video_views, uploads, created_year, 
+         category, lowest_monthly_earnings, highest_monthly_earnings,
+         lowest_yearly_earnings, highest_yearly_earnings, population,
+         unemployment_rate, urban_population)</code></pre>
+<p><br></p>
+</div>
+<div id="section-process-4-remove-outliers" class="section level4">
+<h4>Process 4: Remove outliers</h4>
+<pre class="r"><code>remove_outliers &lt;- function(column) {
+  q1 &lt;- quantile(column, 0.25)
+  q3 &lt;- quantile(column, 0.75)
+  iqr &lt;- q3 - q1
+  lower_bound &lt;- q1 - 1.5 * iqr
+  upper_bound &lt;- q3 + 1.5 * iqr
+  column[column &lt; lower_bound | column &gt; upper_bound] &lt;- NA
+  column
+}
+
+new_df &lt;- select_df  %&gt;%
+  mutate(created_year = remove_outliers(created_year),
+         subscribers = remove_outliers(subscribers),
+         video_views = remove_outliers(video_views),
+         uploads = remove_outliers(uploads),
+         lowest_monthly_earnings = remove_outliers(lowest_monthly_earnings),
+         highest_monthly_earnings = remove_outliers(highest_monthly_earnings),
+         lowest_yearly_earnings = remove_outliers(lowest_yearly_earnings),
+         highest_yearly_earnings = remove_outliers(highest_yearly_earnings)
+         )</code></pre>
+<p><br></p>
+</div>
+<div id="section-process-5-setup-any-new-dfs" class="section level4">
+<h4>Process 5: Setup any new dfs</h4>
+<pre class="r"><code>bar_df &lt;- clean_df %&gt;%
+  select("subscribers", "highest_yearly_earnings", "uploads", "unemployment_rate", "population", "youtuber", "country")
+
+map_df &lt;- clean_df %&gt;%
+  select("subscribers", "video_views", "uploads", "country","latitude","longitude")</code></pre>
+</div>
+</div>
+<div id="section-visual-insights" class="section level3">
+<h3>Visualisations and Insights Stage 🔍</h3>
+<p>Now that the new dataset has been cleaned and transformed (ETL stage
+complete), we can properly perform Visualisations and Insights to
+interpret the following findings:</p>
+<pre class="r"><code>ui &lt;- fluidPage(
+  titlePanel("Interactive Visualisations"),
+  div(
+     p("Select the following options: ")
+  ),
+  
+  # Selection of plot types and perform if statements to determine whether it requires both x_attr and y_attr as 2 inpuits to appear
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("plot_type", "Select plot type:", choices = c("Scatter", "Map", "Dot Plot", "Bar Chart", "Pie Chart")),
+      conditionalPanel(
+        condition = "input.plot_type == 'Scatter'",
+        selectInput("x_attr", "Select x-axis attribute:", names(new_df)),
+        selectInput("y_attr", "Select y-axis attribute:", names(new_df))
+      ),
+      
+      conditionalPanel(
+        condition = "input.plot_type == 'Dot Plot' || input.plot_type == 'Bar Chart' || input.plot_type == 'Pie Chart'",
+        selectInput("x_attr", "Select x-axis attribute:", names(new_df))
+      ),
+      
+      conditionalPanel(
+        condition = "input.plot_type == 'Map'",
+        selectInput("d_attr", "Select size: ", names(new_df))
+      )
+    ),
+  
+   # Different plot output because not one plot is the same render function. Each plot output has its own render function.
+   mainPanel(
+      conditionalPanel(
+        condition = "input.plot_type != 'Map'",
+        plotOutput("plot", height = "400px", width = "600px")
+      ),
+      
+      conditionalPanel(
+        condition = "input.plot_type == 'Map'",
+        leafletOutput("map", height = "400px", width = "600px")
+      )
+    )
+  )
+)
+
+# Define the server
+server &lt;- function(input, output) {
+  
+  # If the user selects Map, it uses the renderLeaftlet function to render Leaflet package dependency.
+  output$map &lt;- renderLeaflet({
+    d_attr &lt;- input$d_attr
+    lat &lt;- map_df$latitude
+    long &lt;- map_df$longitude
+    
+    # Modifiy its radius_multiper based on its results since some d_attr has large values that needs to be downgraded
+    if (d_attr == "subscribers") {
+      radius_multiplier &lt;- 1 / 8000000
+      radius_color &lt;- "darkred"
+    } else if (d_attr == "video_views") {
+      radius_multiplier &lt;- 1 / 6000000000
+      radius_color &lt;- "darkblue"
+    } else if (d_attr == "uploads"){
+      radius_multiplier &lt;- 1 / 10000
+      radius_color &lt;- "green"
+    } else if (d_attr == "lowest_monthly_earnings"){
+      radius_multiplier &lt;- 1 / 10000
+      radius_color &lt;- "green"
+    }
+    
+    # Display the leaflet map based on these values.
+    leaflet() %&gt;%
+      addTiles() %&gt;%
+      setView(lng = mean(long, na.rm = TRUE), lat = mean(lat, na.rm = TRUE), zoom = 2) %&gt;%
+      addCircleMarkers(
+        data = map_df,
+        lng = long,
+        lat = lat,
+        radius = map_df[[d_attr]] * radius_multiplier,
+        color = radius_color,
+        fillOpacity = 0.7,
+        popup = paste("Country: ", map_df$country, "&lt;br&gt;", d_attr, map_df[[d_attr]]) 
+      )
+  })
+  
+  # If the plot is not a map, it goes through the most common render type: renderPlot.
+  output$plot &lt;- renderPlot({
+    if (input$plot_type == "Scatter") {
+      x_attr &lt;- input$x_attr
+      y_attr &lt;- input$y_attr
+      
+      ggplot(new_df, aes_string(x = x_attr, y = y_attr)) +
+        geom_point() +
+        geom_smooth(span = 0.1) +
+        labs(title = paste(x_attr, " amount by ", y_attr))
+    
+    }else if(input$plot_type == "Dot Plot"){
+      x_attr &lt;- input$x_attr
+      
+      top_countries &lt;- bar_df %&gt;%
+        group_by(country) %&gt;%
+        mutate(total_value = round(sum(bar_df[[x_attr]])/1000000)) %&gt;%
+        head(5)
+        
+      
+      ggplot(top_countries, aes(x = total_value, y = country)) +
+      geom_segment(aes_string(xend = 0, yend = "country"), color = "grey") +  # Add connecting lines
+      geom_point(color = "dodgerblue", size = 4) +
+      geom_text(aes(label = total_value), vjust = 3
+                -2.5, hjust = -0.8, color = "black", size = 3) + 
+      labs(title = "Top 5 Countries by sjns",
+           x = "Subscribers",
+           y = "Country") +
+      theme_minimal() +
+      scale_x_continuous(position = "top")
+    
+    }else if(input$plot_type == "Bar Chart"){
+      x_attr &lt;- input$x_attr
+      y_attr &lt;- bar_df$youtuber
+      
+      top_data &lt;- head(bar_df[order(bar_df[[x_attr]], decreasing = TRUE), ], 10)
+      top_data$x_values &lt;- top_data[[x_attr]]
+      
+      top_data$y_attr_clean &lt;- gsub("[^a-zA-Z0-9\\s.,!?&amp;\'-]", " ", top_data$youtuber)
+      top_data &lt;- top_data[order(-top_data[[x_attr]]), ]
+      
+      ggplot(top_data, aes(x = x_values, y = y_attr_clean)) +
+        geom_bar(stat = "identity", fill = "steelblue") +
+        geom_text(aes(label = x_values), vjust = 0.5, hjust = 1.1, color = "white", size = 3.5, fontface = "bold") +
+        labs(title = paste("Top 10 YouTube Channels by No.", x_attr), x = x_attr, y = "YouTuber") +
+        theme_minimal()
+
+      
+    }else if(input$plot_type == "Pie Chart"){
+      x_attr &lt;- input$x_attr
+  
+      top_data &lt;- head(bar_df[order(bar_df[[x_attr]], decreasing = TRUE), ], 10)
+      top_data$x_values &lt;- top_data[[x_attr]]
+      
+      top_data$y_attr_clean &lt;- gsub("[^a-zA-Z0-9\\s.,!?&amp;\'-]", " ", top_data$youtuber)
+      top_data &lt;- top_data[order(-top_data[[x_attr]]), ]
+      
+      ggplot(top_data, aes(x = "", y = x_values, fill = y_attr_clean)) +
+        geom_bar(stat = "identity") +
+        coord_polar(theta = "y") +
+        labs(title = paste("Countries %", x_attr), x = NULL, y = NULL) +
+        theme_minimal() +
+        theme(legend.position = "bottom") 
+    }
+  })
+}
+
+# Run the Shiny app
+shinyApp(ui, server)</code></pre>
+<iframe data-deferred-src="appff970ca3ef4cd5ab382d90f4b0caefd8/?w=&amp;__subapp__=1" width="100%" height="400" class="shiny-frame shiny-frame-deferred"></iframe>
+</div>
+<div id="section-bqueries" class="section level3">
+<h3>Business Queries:</h3>
+<div id="section-correlation-between-number-of-subscribers-and-earnings-per-year" class="section level4">
+<h4>1. Correlation between Number of Subscribers and Earnings (per
+year)</h4>
+<p>The correlation for both subscribers and highest_yearly_earnings
+showcase that vast majority of subscribers will earn lower compared to
+those who have higher subscribers but that does not necessary mean it
+will generally have higher earnings. For instance, some subscribers have
+low amount of subscribers but yet they achieved great earning results
+and some do have higher subscribers but the earnings are low. Not much
+youtubers who can achieve a high amount of subscribers is necessary to
+achieve high earnings based on subscribers alone, it can affect the
+amount of earnings such as marketing campaigns to buy more products
+etc.</p>
+<pre class="r"><code>ggplot(data = new_df, mapping = aes(x = new_df$subscribers, y = new_df$highest_yearly_earnings)) +
+  geom_point() + 
+  geom_smooth(method = "lm", formula = y ~ x) +
+  labs(x = "No. of Subscribers", y = "$ per year") +
+  ggtitle("Subscribers Earnings per Year")</code></pre>
+<p><img src="CITS4009%20-%20Project%201_files/unnamed-chunk-10-1.png" width="672"></p>
+</div>
+<div id="section-top-10-youtube-channels-by-no.-subscribers" class="section level4">
+<h4>2. Top 10 YouTube Channels by No.&nbsp;Subscribers</h4>
+<p>T-Series has the highest amount of subscribers, followed by YouTube
+Movies and after that MrBeast. The next graph showcase whether those
+youtubers has the highest amount of earnings because of the number of
+subscribers that have?</p>
+<pre class="r"><code>top_10_subscribers &lt;- head(bar_df[order(bar_df$subscribers, decreasing = TRUE), ], 10)
+
+top_10_subscribers$clean_youtuber &lt;- gsub("[^a-zA-Z0-9\\s.,!?&amp;\'-]", " ", top_10_subscribers$youtuber)
+
+ggplot(top_10_subscribers, aes_string(x = "subscribers", y = "clean_youtuber")) +
+        geom_bar(stat = "identity", fill = "steelblue") +
+        geom_text(aes_string(label = "subscribers"), vjust = 0.5, hjust = 1.1, color = "white", size = 3.5, fontface = "bold") +
+        labs(title = "Top 10 YouTubers by No. Subscribers", x = "Subscribers", y = "YouTuber")</code></pre>
+<p><img src="CITS4009%20-%20Project%201_files/unnamed-chunk-11-1.png" width="672"></p>
+</div>
+<div id="section-top-10-youtube-channels-max-year-earnings" class="section level4">
+<h4>3. Top 10 YouTube Channels Max Year Earnings</h4>
+<p>It not necessary true that the higher the amount of subscribers, the
+higher the earning potential that a Youtuber can produce. As you can see
+below, KIMPRO has the highest amount of earnings per year followed by
+DaFuq!?Boom! and after that T-Series. T-Series does showcase the highest
+amount of subscribers but it is the 3rd highest earning per year.</p>
+<pre class="r"><code>top_10_earnings &lt;- head(bar_df[order(bar_df$highest_yearly_earnings, decreasing = TRUE), ], 10)
+
+top_10_earnings$clean_youtuber &lt;- gsub("[^a-zA-Z0-9\\s.,!?&amp;\'-]", " ", top_10_earnings$youtuber)
+
+ggplot(top_10_earnings, aes_string(x = "highest_yearly_earnings", y = "clean_youtuber")) +
+        geom_bar(stat = "identity", fill = "steelblue") +
+        geom_text(aes_string(label = "highest_yearly_earnings"), vjust = 0.5, hjust = 1.1, color = "white", size = 3.5, fontface = "bold") +
+        labs(title = "Top 10 YouTubers by their max earnings per Year ($)", x = "Max Earnings per Year ($)", y = "YouTuber")</code></pre>
+<p><img src="CITS4009%20-%20Project%201_files/unnamed-chunk-12-1.png" width="672"></p>
+</div>
+<div id="section-top-10-countries-shows-subscribers-and-max-earnings-comparsion" class="section level4">
+<h4>4. Top 10 Countries shows subscribers and max earnings
+comparsion</h4>
+<p>As you can see, every youtuber based on their country is added up
+their earnings and subscribers to represent which country contains the
+highest earnings and subscribers. We can definitely correlate that
+United States of America tends to have the highest earnings and
+subscribers, followed by India. Since majority of the world population’s
+main language is English, it makes sense to see that majority of the
+population will be marketed towards English speakers.</p>
+<pre class="r"><code>top10_country_max &lt;- bar_df %&gt;%
+  group_by(country) %&gt;%
+  summarise(max_earnings = round(sum(highest_yearly_earnings)/10000000)) %&gt;%
+  arrange(desc(max_earnings)) %&gt;%
+  head(10)
+
+top10_country_sub &lt;- bar_df %&gt;%
+  group_by(country) %&gt;%
+  summarise(subscribers = round(sum(subscribers)/10000000)) %&gt;%
+  arrange(desc(subscribers)) %&gt;%
+  head(10)
+
+p1 &lt;- ggplot(top10_country_max, aes(x = max_earnings, y = country)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_text(aes_string(label = "max_earnings"), vjust = 0.5, hjust = 1.1,   color = "white", size = 3.5, fontface = "bold") +
+  labs(title = "Top 10 Countries by Maximum Earnings",
+       x = "Earnings (10M)",
+       y = "Country")
+
+p2 &lt;- ggplot(top10_country_sub, aes(x = subscribers, y = country)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_text(aes_string(label = "subscribers"), vjust = 0.5, hjust = 1.1,   color = "white", size = 3.5, fontface = "bold") +
+  labs(title = "Top 10 Countries by Subscribers",
+       x = "Subscribers (10M)",
+       y = "Country")
+
+grid.arrange(p1, p2)</code></pre>
+<p><img src="CITS4009%20-%20Project%201_files/unnamed-chunk-13-1.png" width="672"></p>
+</div>
+</div>
+<div id="section-conclusion" class="section level3">
+<h3>Conclusion/Summary 📋</h3>
+<p>In Conclusion, United States of America and India seem to showcase
+exceptional results for having reputable Youtubers and the correlation
+between the earnings and subscribers shows little evidence to proof that
+if subscribers are higher then generally the earnings will be higher as
+well because the number of subscribers is not the only main factor that
+will determine it overall success (earnings). The top 10 YouTubers also
+clearly shows that even the highest amount of subscribers does not
+correlate to higher earnings.</p>
+<div id="section-improvements-to-be-made" class="section level4">
+<h4>Improvements to be made</h4>
+<p>Bar Chart/Scatter Plot:</p>
+<ul>
+<li>Values can be displayed to cut into smaller digits (e.g.&nbsp;1M) if the
+values gets too large, sort the YouTuber’s data from biggest bar to
+lowest bar to see better comparison.</li>
+<li>Ability to add a slider option not just fixed to only 10 YouTubers,
+it can showcase based on their selection for only the max. E.g I want to
+show 5 YouTubers.</li>
+</ul>
+<p>The results only showcase 3 main variables:</p>
+<ul>
+<li>Subscribers</li>
+<li>Earnings</li>
+<li>Country</li>
+</ul>
+<p>Dot-Plot and Pie Chart should be functional in the shiny-app
+interaction. Bar-Chart functionality is not completed as if I changed
+the x-axis value instead of subscribers to video_views, it should
+automatically renders its data properly. To further improve it analysis,
+additional plot-types and enable functionality in shiny-app interaction
+and added additional data analysis for better insights to answer
+impactful queries. E.g. which category seem to have the most popular</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("section-TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+
+
+</body></html>

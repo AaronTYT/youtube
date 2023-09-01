@@ -2,7 +2,7 @@
 title: "CITS4009 - Project 1"
 author: Aaron Tan (23070356)
 output: html_document
-date: "2023-08-04"
+date: "2023-09-01"
 runtime: shiny
 ---
 
@@ -15,7 +15,16 @@ The data set analyzed can be obtained from the Kaggle platform. It’s part of t
 
 A collection of YouTube giants, this dataset offers a perfect avenue to analyze and gain valuable insights from the luminaries of the platform. With comprehensive details on top creators' subscriber counts, video views, upload frequency, country of origin, earnings, and more, this treasure trove of information is a must-explore for aspiring content creators, data enthusiasts, and anyone intrigued by the ever-evolving online content landscape. Immerse yourself in the world of YouTube success and unlock a wealth of knowledge with this extraordinary dataset.
 
-Video link: youtube_link here
+Video link: https://youtu.be/PytUn6ANdnk
+
+<br>
+Table of each stage:
+
+* [Basic Statistics](#basic-stats)
+* [Data Cleaning/Transformation Stage](#data-clean)
+* [Visualisations and Insights Stage](#visual-insights)
+* [Business Queries](#bqueries)
+* [Conclusion](#conclusion)
 
 ### Data loading, overview and set up: 
 ```{r}
@@ -31,10 +40,23 @@ library(shinyWidgets)
 library(leaflet)
 ```
 
-#### Load the main data and display summary, str and head:
+#### Basic Statistics: {#basic-stats}
+In this section, we demonstrate the iterative nature of EDA
+by revisiting and refining our analysis at different stages.
+
+Initial exploration:
+<br>
+This will perform a basic exploration of the data to get a sense of its structure.
+We show the structure, summary, and head of the data to understand its basic characteristics.
 ```{r}
-#data_path <- "C:/Users/tanaaro/Desktop/youtube/Global YouTube Statistics.csv"
-data_path <- "C:/Users/tanaaro/Desktop/youtube/Global YouTube Statistics.csv"
+# Define a variable for the base directory
+base_dir <- "D:/UWA/Data Science/Semester 2/CITS4009 - Computational Data Analysis/Assignment 1/"
+
+# Define a variable for the file name
+file_name <- "Global YouTube Statistics.csv"
+
+# Combine the base directory and file name to create the full data path
+data_path <- file.path(base_dir, file_name)
 df <- fread(data_path, sep=",", encoding = "UTF-8")
 ```
 
@@ -42,7 +64,6 @@ df <- fread(data_path, sep=",", encoding = "UTF-8")
 ui <- fluidPage(
   titlePanel("Exploration of Data Results:"),
   
-  # Description panel using HTML elements
   div(
     h4("Summary of results:"),
     p(HTML("There are <b>995 obs</b> with <b>28 variables.</b>")),
@@ -50,7 +71,7 @@ ui <- fluidPage(
     p("Some of the data is not consistent like 0 video views, 'nan' and 'N/A'. I will data clean these values (Transform stage) before using a new dataset to properly do the EDA analysis."),
     
     class = "description-panel",
-    p("Use the tabs below to view the structure (str), summary and head (first 6 datapoints per column) statistics."),
+    p("Use the tabs below to view the structure (str), summary and head (first 10 datapoints per column) statistics."),
     hr()  
   ),
   
@@ -63,6 +84,7 @@ ui <- fluidPage(
   )
 )
 
+# Display the 3 structures of data to understand its basic charactertistics
 server <- function(input, output) {
   output$str_output <- renderPrint({
     str(df)
@@ -79,9 +101,19 @@ server <- function(input, output) {
 
 shinyApp(ui, server)
 ```
+### Data Cleaning/Transformation Stage 🧹 {#data-clean}
+An important part of the ETL (Transform) Stage process before we do any analysis since this dataset does not contain perfect structured data
+required for the analysis. This Stage is modularised into 5 processes:
 
-### Data Cleaning/Transformation Stage 🧹
-#### Stage 1: Columns underscore syntax should be consistent
+* Columns underscore syntax should be consistent
+* Replace all the zero, NA, and NaN values with their median
+* Specifically get columns required 
+* Remove outliers
+* Setup any new dfs
+
+#### Process 1: Columns underscore syntax should be consistent
+Replace all the columns headings that are spaced to have replaced with _ and 
+to make the column names all lowercases.
 ```{r}
 clean_df <- df %>%
   rename_all(~ gsub(" ", "_", tolower(.)))
@@ -89,31 +121,37 @@ clean_df <- df %>%
 
 <br>
 
-#### Stage 2: Replace all the zero, NA, and NaN values with their median
+#### Process 2: Replace all the zero, NA, and NaN values with their median
+Any missing values that are identified these 3 values are replaced each row based on its own column to its median.
 ```{r}
 selected_columns <- c("video_views", "uploads", "country_rank", "gross_tertiary_education_enrollment_(%)", "population", "subscribers_for_last_30_days", "unemployment_rate", "channel_type_rank", "video_views_for_the_last_30_days", "urban_population", "created_year", "country")
 
+# Calculate the median value for selected numeric columns and replace missing/zero values
 for (col_name in selected_columns) {
   if (is.numeric(clean_df[[col_name]])) {
-    median_value <- median(clean_df[[col_name]][!is.na(clean_df[[col_name]]) & !is.nan(clean_df[[col_name]]) & clean_df[[col_name]] != 0])
-    clean_df[[col_name]][is.na(clean_df[[col_name]]) | is.nan(clean_df[[col_name]]) | clean_df[[col_name]] == 0] <- median_value
+    clean_df[[col_name]][is.na(clean_df[[col_name]]) | is.nan(clean_df[[col_name]]) | clean_df[[col_name]] == 0] <- median(clean_df[[col_name]], na.rm = TRUE)
   }
 }
-# Figure it out how to change decimal to integer for uploads, channel_type_rank column
+
 ```
 
 <br>
 
-#### Stage 3: Specifically get columns required for scatterplot
+#### Process 3: Specifically get columns required for a dataframe
+Get the appropriate columns from clean_df
 ```{r}
-scatter_df <- clean_df %>%
-  # select(subscribers, video_views, uploads, country, created_year)
+select_df <- clean_df %>%
   select(subscribers, video_views, uploads, created_year, 
          category, lowest_monthly_earnings, highest_monthly_earnings,
          lowest_yearly_earnings, highest_yearly_earnings, population,
          unemployment_rate, urban_population)
+```
 
-# Stage 4: Remove outliers by using this function formula:
+<br>
+
+#### Process 4: Remove outliers
+
+```{r}
 remove_outliers <- function(column) {
   q1 <- quantile(column, 0.25)
   q3 <- quantile(column, 0.75)
@@ -124,8 +162,7 @@ remove_outliers <- function(column) {
   column
 }
 
-# New df after removing outliers
-scatter_df2 <- scatter_df %>%
+new_df <- select_df  %>%
   mutate(created_year = remove_outliers(created_year),
          subscribers = remove_outliers(subscribers),
          video_views = remove_outliers(video_views),
@@ -139,7 +176,8 @@ scatter_df2 <- scatter_df %>%
 
 <br>
 
-#### Stage 4: Setup any new dfs
+#### Process 5: Setup any new dfs
+
 ```{r}
 bar_df <- clean_df %>%
   select("subscribers", "highest_yearly_earnings", "uploads", "unemployment_rate", "population", "youtuber", "country")
@@ -148,8 +186,8 @@ map_df <- clean_df %>%
   select("subscribers", "video_views", "uploads", "country","latitude","longitude")
 ```
 
-### EDA Analysis Stage 🔍
-Now that the new dataset has been cleaned and transformed (ETL stage complete), we can properly perform EDA analysis to interpret the following findings:
+### Visualisations and Insights Stage 🔍 {#visual-insights}
+Now that the new dataset has been cleaned and transformed (ETL stage complete), we can properly perform Visualisations and Insights to interpret the following findings:
 ```{r}
 ui <- fluidPage(
   titlePanel("Interactive Visualisations"),
@@ -157,31 +195,34 @@ ui <- fluidPage(
      p("Select the following options: ")
   ),
   
+  # Selection of plot types and perform if statements to determine whether it requires both x_attr and y_attr as 2 inpuits to appear
   sidebarLayout(
     sidebarPanel(
       selectInput("plot_type", "Select plot type:", choices = c("Scatter", "Map", "Dot Plot", "Bar Chart", "Pie Chart")),
       conditionalPanel(
         condition = "input.plot_type == 'Scatter'",
-        
-        # Later figure out how to specifically outline numerically columns
-        selectInput("x_attr", "Select x-axis attribute:", names(scatter_df2)),
-        selectInput("y_attr", "Select y-axis attribute:", names(scatter_df2))
+        selectInput("x_attr", "Select x-axis attribute:", names(new_df)),
+        selectInput("y_attr", "Select y-axis attribute:", names(new_df))
       ),
+      
       conditionalPanel(
         condition = "input.plot_type == 'Dot Plot' || input.plot_type == 'Bar Chart' || input.plot_type == 'Pie Chart'",
-        selectInput("x_attr", "Select x-axis attribute:", names(scatter_df2))
+        selectInput("x_attr", "Select x-axis attribute:", names(new_df))
       ),
+      
       conditionalPanel(
         condition = "input.plot_type == 'Map'",
-        selectInput("d_attr", "Select size: ", names(scatter_df2))
+        selectInput("d_attr", "Select size: ", names(new_df))
       )
     ),
-    
+  
+   # Different plot output because not one plot is the same render function. Each plot output has its own render function.
    mainPanel(
       conditionalPanel(
         condition = "input.plot_type != 'Map'",
         plotOutput("plot", height = "400px", width = "600px")
       ),
+      
       conditionalPanel(
         condition = "input.plot_type == 'Map'",
         leafletOutput("map", height = "400px", width = "600px")
@@ -193,13 +234,13 @@ ui <- fluidPage(
 # Define the server
 server <- function(input, output) {
   
+  # If the user selects Map, it uses the renderLeaftlet function to render Leaflet package dependency.
   output$map <- renderLeaflet({
     d_attr <- input$d_attr
     lat <- map_df$latitude
     long <- map_df$longitude
     
-    print(head(map_df[[d_attr]],10))
-    
+    # Modifiy its radius_multiper based on its results since some d_attr has large values that needs to be downgraded
     if (d_attr == "subscribers") {
       radius_multiplier <- 1 / 8000000
       radius_color <- "darkred"
@@ -213,7 +254,8 @@ server <- function(input, output) {
       radius_multiplier <- 1 / 10000
       radius_color <- "green"
     }
-
+    
+    # Display the leaflet map based on these values.
     leaflet() %>%
       addTiles() %>%
       setView(lng = mean(long, na.rm = TRUE), lat = mean(lat, na.rm = TRUE), zoom = 2) %>%
@@ -228,38 +270,36 @@ server <- function(input, output) {
       )
   })
   
+  # If the plot is not a map, it goes through the most common render type: renderPlot.
   output$plot <- renderPlot({
     if (input$plot_type == "Scatter") {
       x_attr <- input$x_attr
       y_attr <- input$y_attr
       
-      ggplot(scatter_df2, aes_string(x = x_attr, y = y_attr)) +
+      ggplot(new_df, aes_string(x = x_attr, y = y_attr)) +
         geom_point() +
         geom_smooth(span = 0.1) +
         labs(title = paste(x_attr, " amount by ", y_attr))
     
     }else if(input$plot_type == "Dot Plot"){
       x_attr <- input$x_attr
-      values <- bar_df[[x_attr]]
-  
-      aggregated_data <- bar_df %>%
+      
+      top_countries <- bar_df %>%
         group_by(country) %>%
-        summarize(total_value = sum(values, na.rm = T))
+        mutate(total_value = round(sum(bar_df[[x_attr]])/1000000)) %>%
+        head(5)
+        
       
-      sorted_data <- aggregated_data[order(aggregated_data$total_value, decreasing = TRUE), ]
-      
-      top_countries <- head(sorted_data, 5)
-      
-      ggplot(top_countries, aes(x = total_value, y = reorder(country, total_value))) +
-      geom_segment(aes(xend = 0, yend = country), color = "grey") +  # Add connecting lines
+      ggplot(top_countries, aes(x = total_value, y = country)) +
+      geom_segment(aes_string(xend = 0, yend = "country"), color = "grey") +  # Add connecting lines
       geom_point(color = "dodgerblue", size = 4) +
       geom_text(aes(label = total_value), vjust = 3
                 -2.5, hjust = -0.8, color = "black", size = 3) + 
-      labs(title = paste("Top 5 Countries by", country),
+      labs(title = "Top 5 Countries by sjns",
            x = "Subscribers",
            y = "Country") +
       theme_minimal() +
-      scale_x_continuous(position = "top")  # Move x-axis to top
+      scale_x_continuous(position = "top")
     
     }else if(input$plot_type == "Bar Chart"){
       x_attr <- input$x_attr
@@ -289,21 +329,20 @@ server <- function(input, output) {
       
       ggplot(top_data, aes(x = "", y = x_values, fill = y_attr_clean)) +
         geom_bar(stat = "identity") +
-        coord_polar(theta = "y") +  # Create a pie chart
+        coord_polar(theta = "y") +
         labs(title = paste("Countries %", x_attr), x = NULL, y = NULL) +
         theme_minimal() +
-        theme(legend.position = "bottom")  # Adjust legend position
+        theme(legend.position = "bottom") 
     }
   })
 }
 
 # Run the Shiny app
 shinyApp(ui, server)
-
 ```
 
 
-### Business Queries:
+### Business Queries: {#bqueries}
 #### 1. Correlation between Number of Subscribers and Earnings (per year)
 The correlation for both subscribers and highest_yearly_earnings showcase that vast majority of subscribers will earn
 lower compared to those who have higher subscribers but that does not necessary mean it will generally have higher earnings.
@@ -311,25 +350,22 @@ For instance, some subscribers have low amount of subscribers but yet they achie
 but the earnings are low. Not much youtubers who can achieve a high amount of subscribers is necessary to achieve high earnings based on subscribers alone, it can affect the amount of earnings such as marketing campaigns to buy more products etc.
 
 ```{r, warning = FALSE }
-# Figure out how to change the ggplot size later
-ggplot(data = scatter_df2, mapping = aes(x = scatter_df2$subscribers, y = scatter_df2$highest_yearly_earnings)) +
+ggplot(data = new_df, mapping = aes(x = new_df$subscribers, y = new_df$highest_yearly_earnings)) +
   geom_point() + 
   geom_smooth(method = "lm", formula = y ~ x) +
   labs(x = "No. of Subscribers", y = "$ per year") +
   ggtitle("Subscribers Earnings per Year")
-
-
-summary(scatter_df2$subscribers)
-summary(scatter_df2$highest_yearly_earnings)
 ```
 
 #### 2. Top 10 YouTube Channels by No. Subscribers
 T-Series has the highest amount of subscribers, followed by YouTube Movies and after that MrBeast. The next graph showcase whether those youtubers has the highest amount of earnings because of the number of subscribers that have?
 
 ```{r, warning = FALSE }
-top_data <- head(bar_df[order(bar_df$subscribers, decreasing = TRUE), ], 10)
-top_data$clean_youtuber <- gsub("[^a-zA-Z0-9\\s.,!?&\'-]", " ", top_data$youtuber)
-ggplot(top_data, aes_string(x = "subscribers", y = "clean_youtuber")) +
+top_10_subscribers <- head(bar_df[order(bar_df$subscribers, decreasing = TRUE), ], 10)
+
+top_10_subscribers$clean_youtuber <- gsub("[^a-zA-Z0-9\\s.,!?&\'-]", " ", top_10_subscribers$youtuber)
+
+ggplot(top_10_subscribers, aes_string(x = "subscribers", y = "clean_youtuber")) +
         geom_bar(stat = "identity", fill = "steelblue") +
         geom_text(aes_string(label = "subscribers"), vjust = 0.5, hjust = 1.1, color = "white", size = 3.5, fontface = "bold") +
         labs(title = "Top 10 YouTubers by No. Subscribers", x = "Subscribers", y = "YouTuber")
@@ -338,10 +374,11 @@ ggplot(top_data, aes_string(x = "subscribers", y = "clean_youtuber")) +
 #### 3. Top 10 YouTube Channels Max Year Earnings 
 It not necessary true that the higher the amount of subscribers, the higher the earning potential that a Youtuber can produce. As you can see below, KIMPRO has the highest amount of earnings per year followed by DaFuq!?Boom! and after that T-Series. T-Series does showcase the highest amount of subscribers but it is the 3rd highest earning per year.
 ```{r}
-# How to count the number of max year earnings?
-top_data <- head(bar_df[order(bar_df$highest_yearly_earnings, decreasing = TRUE), ], 10)
-top_data$clean_youtuber <- gsub("[^a-zA-Z0-9\\s.,!?&\'-]", " ", top_data$youtuber)
-ggplot(top_data, aes_string(x = "highest_yearly_earnings", y = "clean_youtuber")) +
+top_10_earnings <- head(bar_df[order(bar_df$highest_yearly_earnings, decreasing = TRUE), ], 10)
+
+top_10_earnings$clean_youtuber <- gsub("[^a-zA-Z0-9\\s.,!?&\'-]", " ", top_10_earnings$youtuber)
+
+ggplot(top_10_earnings, aes_string(x = "highest_yearly_earnings", y = "clean_youtuber")) +
         geom_bar(stat = "identity", fill = "steelblue") +
         geom_text(aes_string(label = "highest_yearly_earnings"), vjust = 0.5, hjust = 1.1, color = "white", size = 3.5, fontface = "bold") +
         labs(title = "Top 10 YouTubers by their max earnings per Year ($)", x = "Max Earnings per Year ($)", y = "YouTuber")
@@ -379,17 +416,24 @@ p2 <- ggplot(top10_country_sub, aes(x = subscribers, y = country)) +
 grid.arrange(p1, p2)
 ```
 
-### Conclusion/Summary 📋
-In Conclusion, 
+### Conclusion/Summary 📋 {#conclusion}
+In Conclusion, United States of America and India seem to showcase exceptional results for having reputable Youtubers and the correlation between the earnings and subscribers shows little evidence to proof that if subscribers are higher then generally the earnings will be higher as well because the number of subscribers is not the only main factor that will determine it overall success (earnings). The top 10 YouTubers also clearly shows that even the highest amount of subscribers does not correlate to higher earnings. 
 
-#### Improvements in the near future
-Bar Chart:
+#### Improvements to be made
+Bar Chart/Scatter Plot:
 
 * Values can be displayed to cut into smaller digits (e.g. 1M) if the values gets too large, sort the YouTuber's data from biggest bar to lowest bar to see better comparison. 
 * Ability to add a slider option not just fixed to only 10 YouTubers, it can showcase based on their selection for only the max. E.g I want to show 5 YouTubers.
 
+The results only showcase 3 main variables:
 
-Add more variety of plot-types and enable functionality in shiny-app interaction and added additional data analysis for better insights to answer impactful queries.
+* Subscribers
+* Earnings
+* Country
+
+
+Dot-Plot and Pie Chart should be functional in the shiny-app interaction. Bar-Chart functionality is not completed as if I changed the x-axis value instead of subscribers to video_views, it should automatically renders its data properly.
+To further improve it analysis, additional plot-types and enable functionality in shiny-app interaction and added additional data analysis for better insights to answer impactful queries. E.g. which category seem to have the most popular
 
 
 
